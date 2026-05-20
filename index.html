@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="dark">
+<html lang="fr" data-theme="light">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -1096,7 +1096,7 @@
       tIcon.className=t==='dark'?'fas fa-sun':'fas fa-moon';
       localStorage.setItem('theme',t);
     }
-    setTheme(localStorage.getItem('theme')||'dark');
+    setTheme(localStorage.getItem('theme')||'light');
     tBtn.addEventListener('click', () => setTheme(html.getAttribute('data-theme')==='dark'?'light':'dark'));
 
     /* REVEAL */
