@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="light">
+<html lang="fr" data-theme="dark">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -27,8 +27,9 @@
     .nav-back{display:inline-flex;align-items:center;gap:8px;font-size:0.8rem;font-weight:500;letter-spacing:0.06em;color:var(--text2);text-transform:uppercase;border:1px solid var(--border2);border-radius:9px;padding:8px 16px;transition:color 0.2s,border-color 0.2s;}
     .nav-back:hover{color:var(--accent);border-color:rgba(var(--accent-rgb),0.4);}
     .nav-r{display:flex;align-items:center;gap:10px;}
-    #theme-toggle2{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border2);border-radius:9px;background:var(--surface);color:var(--text2);cursor:pointer;font-size:0.9rem;transition:color 0.2s,border-color 0.2s,transform 0.2s;}
+    #theme-toggle2{width:36px;height:36px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border2);border-radius:9px;background:var(--surface);color:var(--text2);cursor:pointer;font-size:0.9rem;transition:color 0.2s,border-color 0.2s,transform 0.2s;flex-shrink:0;}
     #theme-toggle2:hover{color:var(--accent);border-color:rgba(var(--accent-rgb),0.4);transform:rotate(20deg);}
+    @media(max-width:560px){.nav-back span{display:none;} .nav-r{gap:6px;} #theme-toggle2{width:32px;height:32px;font-size:0.8rem;}}
     .g-hero{min-height:36vh;padding-top:64px;display:flex;align-items:center;border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
     .g-hero-orb{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;width:400px;height:400px;background:rgba(var(--accent-rgb),0.06);right:-60px;top:-40px;}
     .g-hero .inner{position:relative;z-index:1;padding:48px 5%;}
@@ -199,7 +200,7 @@
     window.addEventListener('scroll',()=>document.getElementById('g-nav').classList.toggle('scrolled',scrollY>20));
     const html=document.documentElement,tb=document.getElementById('theme-toggle2'),ti=tb.querySelector('i');
     function setT(t){html.setAttribute('data-theme',t);ti.className=t==='dark'?'fas fa-sun':'fas fa-moon';localStorage.setItem('theme',t);}
-    setT(localStorage.getItem('theme')||'light');
+    setT(localStorage.getItem('theme')||'dark');
     tb.addEventListener('click',()=>setT(html.getAttribute('data-theme')==='dark'?'light':'dark'));
     const ro=new IntersectionObserver(entries=>entries.forEach((e,i)=>{if(e.isIntersecting){e.target.style.transitionDelay=(i%6)*0.07+'s';e.target.classList.add('visible');}}),{threshold:0.08});
     document.querySelectorAll('.g-item').forEach(el=>ro.observe(el));
@@ -241,6 +242,49 @@
       if(e.key==='Escape') closeLb();
       if(e.key==='ArrowLeft') document.getElementById('lb-prev').click();
       if(e.key==='ArrowRight') document.getElementById('lb-next').click();
+    });
+
+    /* ── SCROLL PROGRESS BAR ── */
+    const progBar = document.createElement('div');
+    Object.assign(progBar.style, {
+      position:'fixed',top:'0',left:'0',height:'2px',width:'0%',
+      background:'var(--accent)',zIndex:'9000',transition:'width 0.1s linear'
+    });
+    document.body.appendChild(progBar);
+    window.addEventListener('scroll',()=>{
+      const pct=(scrollY/(document.body.scrollHeight-innerHeight))*100;
+      progBar.style.width=Math.min(pct,100)+'%';
+    });
+
+    /* ── RIPPLE BOUTONS ── */
+    document.querySelectorAll('.btn-gold, .nav-back').forEach(btn=>{
+      btn.style.position='relative'; btn.style.overflow='hidden';
+      btn.addEventListener('click',e=>{
+        const r=btn.getBoundingClientRect();
+        const rip=document.createElement('span');
+        const size=Math.max(r.width,r.height)*2;
+        Object.assign(rip.style,{
+          position:'absolute',borderRadius:'50%',
+          width:size+'px',height:size+'px',
+          left:(e.clientX-r.left-size/2)+'px',
+          top:(e.clientY-r.top-size/2)+'px',
+          background:'rgba(255,255,255,0.18)',
+          transform:'scale(0)',opacity:'1',
+          transition:'transform 0.55s ease,opacity 0.55s ease',
+          pointerEvents:'none'
+        });
+        btn.appendChild(rip);
+        requestAnimationFrame(()=>{rip.style.transform='scale(1)';rip.style.opacity='0';});
+        setTimeout(()=>rip.remove(),600);
+      });
+    });
+
+    /* ── PARALLAXE ORB GALERIE ── */
+    window.addEventListener('mousemove',e=>{
+      const x=(e.clientX/window.innerWidth-0.5)*12;
+      const y=(e.clientY/window.innerHeight-0.5)*12;
+      document.querySelectorAll('.g-hero-orb').forEach(o=>
+        o.style.transform=`translate(${x}px,${y}px)`);
     });
   </script>
 </body>

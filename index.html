@@ -210,6 +210,9 @@
       .nav-links.open { display: flex; }
       .nav-burger { display: block; }
       .nav-links { margin-right: 0; }
+      /* Fix: theme toggle stays in nav-right, always visible on mobile */
+      .nav-right { gap: 6px; }
+      #theme-toggle { width: 34px; height: 34px; font-size: 0.85rem; flex-shrink: 0; }
     }
 
     /* ═══════════════════════════════════════════════════════
@@ -1096,7 +1099,7 @@
       tIcon.className=t==='dark'?'fas fa-sun':'fas fa-moon';
       localStorage.setItem('theme',t);
     }
-    setTheme(localStorage.getItem('theme')||'light');
+    setTheme(localStorage.getItem('theme')||'dark');
     tBtn.addEventListener('click', () => setTheme(html.getAttribute('data-theme')==='dark'?'light':'dark'));
 
     /* REVEAL */
@@ -1110,6 +1113,123 @@
       if(e.isIntersecting) e.target.querySelectorAll('.skill-fill').forEach(f=>f.style.width=f.dataset.width+'%');
     }),{threshold:0.25});
     document.querySelectorAll('.skills-grid > div').forEach(el=>bo.observe(el));
+
+    /* ── COMPTEURS ANIMÉS ── */
+    const countObs = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (!entry.isIntersecting) return;
+        entry.target.querySelectorAll('.stat-n').forEach(el => {
+          const raw = el.textContent.trim();
+          const num = parseFloat(raw);
+          const suffix = raw.replace(String(num), '');
+          if (isNaN(num)) return;
+          let start = 0, dur = 1400, step = 16;
+          const inc = num / (dur / step);
+          const timer = setInterval(() => {
+            start = Math.min(start + inc, num);
+            el.textContent = (Number.isInteger(num) ? Math.floor(start) : start.toFixed(1)) + suffix;
+            if (start >= num) clearInterval(timer);
+          }, step);
+        });
+        countObs.unobserve(entry.target);
+      });
+    }, { threshold: 0.5 });
+    document.querySelectorAll('.stats-strip').forEach(el => countObs.observe(el));
+
+    /* ── PARALLAXE SUBTIL DES ORBS ── */
+    window.addEventListener('mousemove', e => {
+      const x = (e.clientX / window.innerWidth - 0.5) * 18;
+      const y = (e.clientY / window.innerHeight - 0.5) * 18;
+      document.querySelectorAll('.hero-orb-1').forEach(o =>
+        o.style.transform = `translate(${x}px,${y}px)`);
+      document.querySelectorAll('.hero-orb-2').forEach(o =>
+        o.style.transform = `translate(${-x}px,${-y}px)`);
+    });
+
+    /* ── EFFET TILT PHOTO HERO ── */
+    const photoFrame = document.querySelector('.hero-photo-frame');
+    if (photoFrame) {
+      photoFrame.addEventListener('mousemove', e => {
+        const r = photoFrame.getBoundingClientRect();
+        const x = ((e.clientX - r.left) / r.width - 0.5) * 14;
+        const y = ((e.clientY - r.top) / r.height - 0.5) * -14;
+        photoFrame.style.transform = `perspective(600px) rotateY(${x}deg) rotateX(${y}deg) scale(1.02)`;
+      });
+      photoFrame.addEventListener('mouseleave', () => {
+        photoFrame.style.transform = 'perspective(600px) rotateY(0) rotateX(0) scale(1)';
+      });
+    }
+
+    /* ── HIGHLIGHT LIEN NAV AU CLIC ── */
+    navAs.forEach(a => {
+      a.addEventListener('click', () => {
+        navAs.forEach(n => n.classList.remove('active'));
+        a.classList.add('active');
+      });
+    });
+
+    /* ── TYPED EFFECT SUR LE RÔLE ── */
+    const roleEl = document.querySelector('.hero-role');
+    if (roleEl) {
+      const phrases = [
+        'Étudiant BTS SIO · Option SISR · Rennes',
+        'Passionné par les réseaux & la cybersécurité',
+        'Montage vidéo · Retouche photo'
+      ];
+      let pi = 0, ci = 0, deleting = false;
+      function typeLoop() {
+        const phrase = phrases[pi];
+        if (!deleting) {
+          roleEl.textContent = phrase.slice(0, ci + 1);
+          ci++;
+          if (ci === phrase.length) { deleting = true; setTimeout(typeLoop, 2200); return; }
+        } else {
+          roleEl.textContent = phrase.slice(0, ci - 1);
+          ci--;
+          if (ci === 0) { deleting = false; pi = (pi + 1) % phrases.length; }
+        }
+        setTimeout(typeLoop, deleting ? 40 : 70);
+      }
+      /* Démarre après le loader */
+      setTimeout(typeLoop, 1400);
+    }
+
+    /* ── RIPPLE SUR LES BOUTONS ── */
+    document.querySelectorAll('.btn-gold, .btn-ghost').forEach(btn => {
+      btn.style.position = 'relative';
+      btn.style.overflow = 'hidden';
+      btn.addEventListener('click', e => {
+        const r = btn.getBoundingClientRect();
+        const rip = document.createElement('span');
+        const size = Math.max(r.width, r.height) * 2;
+        Object.assign(rip.style, {
+          position: 'absolute', borderRadius: '50%',
+          width: size + 'px', height: size + 'px',
+          left: (e.clientX - r.left - size / 2) + 'px',
+          top: (e.clientY - r.top - size / 2) + 'px',
+          background: 'rgba(255,255,255,0.18)',
+          transform: 'scale(0)', opacity: '1',
+          transition: 'transform 0.55s ease, opacity 0.55s ease',
+          pointerEvents: 'none'
+        });
+        btn.appendChild(rip);
+        requestAnimationFrame(() => { rip.style.transform = 'scale(1)'; rip.style.opacity = '0'; });
+        setTimeout(() => rip.remove(), 600);
+      });
+    });
+
+    /* ── SCROLL PROGRESS BAR ── */
+    const bar = document.createElement('div');
+    Object.assign(bar.style, {
+      position: 'fixed', top: '0', left: '0', height: '2px', width: '0%',
+      background: 'var(--accent)', zIndex: '9000',
+      transition: 'width 0.1s linear'
+    });
+    document.body.appendChild(bar);
+    window.addEventListener('scroll', () => {
+      const pct = (scrollY / (document.body.scrollHeight - innerHeight)) * 100;
+      bar.style.width = Math.min(pct, 100) + '%';
+    });
   </script>
 </body>
 </html>
