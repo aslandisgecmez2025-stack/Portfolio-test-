@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="dark">
+<html lang="fr" data-theme="light">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -199,7 +199,7 @@
     window.addEventListener('scroll',()=>document.getElementById('g-nav').classList.toggle('scrolled',scrollY>20));
     const html=document.documentElement,tb=document.getElementById('theme-toggle2'),ti=tb.querySelector('i');
     function setT(t){html.setAttribute('data-theme',t);ti.className=t==='dark'?'fas fa-sun':'fas fa-moon';localStorage.setItem('theme',t);}
-    setT(localStorage.getItem('theme')||'dark');
+    setT(localStorage.getItem('theme')||'light');
     tb.addEventListener('click',()=>setT(html.getAttribute('data-theme')==='dark'?'light':'dark'));
     const ro=new IntersectionObserver(entries=>entries.forEach((e,i)=>{if(e.isIntersecting){e.target.style.transitionDelay=(i%6)*0.07+'s';e.target.classList.add('visible');}}),{threshold:0.08});
     document.querySelectorAll('.g-item').forEach(el=>ro.observe(el));
